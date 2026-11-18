@@ -138,7 +138,7 @@ Pushing a tag such as `v1.0.0` to GitHub runs the same build in GitHub Actions (
 
 ## Credits
 
-TikVortex stands on other people's work. Thank you to:
+Thank you to:
 
 | Project | Author | Used for | Licence |
 |---|---|---|---|
