@@ -1,0 +1,41 @@
+# Builds the Windows release when a version tag (v1.0.0, ...) is pushed, and attaches the zip to a GitHub release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install -r requirements-build.txt
+      - name: Render icon
+        run: python tools/make_icon.py
+      - name: Build
+        run: python -m PyInstaller TikVortex.spec --noconfirm --clean
+      - name: Package
+        shell: pwsh
+        run: |
+          Copy-Item README.md dist/TikVortex/
+          Copy-Item LICENSE dist/TikVortex/LICENSE.txt
+          $v = "${{ github.ref_name }}".TrimStart("v")
+          Compress-Archive -Path dist/TikVortex -DestinationPath "dist/TikVortex-$v-windows.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TikVortex-windows
+          path: dist/*.zip
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
